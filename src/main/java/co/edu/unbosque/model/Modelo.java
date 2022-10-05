@@ -1,15 +1,15 @@
 package co.edu.unbosque.model;
+import java.security.KeyStore.Entry;
 import java.util.*;
 
+@SuppressWarnings("unused")
 public class Modelo {
 	
 	private final int cantidad = 362880;
 	private final int maxLimit = 3;
-	private Map <int [][], Integer> map;
 	
-	public Modelo() {
-		map = new HashMap <> ();
-	}
+	public Modelo() {}
+	
 	
 	public List <int [][]> addMatrix() {
 		List <int[][]> list = new ArrayList<>();
@@ -18,29 +18,37 @@ public class Modelo {
 		return list;
 	}
 	
-	public List <int [][]> partitionMatrixIsPais(List <int [][]> listMatrix){
+	public List <int [][]> partition(List <int [][]> listMatrix){
 		return listMatrix.stream()
 					     .filter(this :: isPair)
+					     .filter(this :: isCentral)
+					     .filter(this :: isMiddleCount)
 					     .toList();
 	}
 	
-	public List <int [][]> partitionQuantity(List <int [][]> listMatrix){
-		return listMatrix.stream()
-				  	     .filter(this :: isMiddleCount)
-				  	     .toList();
+	public List <int [][]> cleanMap(Map <int [][], int [][]> map){
+		List <int [][]> list = new ArrayList <> ();
+		for(Map.Entry<int[][], int[][]> entry : map.entrySet()) {
+			 if(countMatch(entry.getKey()) > countMatch(entry.getValue()))
+				 list.add(entry.getKey());
+			 else
+				 list.add(entry.getValue());
+		}
+		return list;
 	}
 	
-	public boolean isMiddleCount(int matrix [][]) {
-		return countMatch(matrix) > 3;
+	public List <int [][]> distinct(List <int [][]> listMatrix){
+		
+		return null;
 	}
 	
-	public boolean isPair(int matrix [][]) {
-		return matrix[0][0] % 2 == 0 && matrix[0][2] % 2 == 0 && matrix[2][0] % 2 == 0 && matrix[2][2] % 2 == 0;
+	public void nose(List <int [][]> list) {
+		
 	}
 	
-	public Map <int [][], int [][]> emparejar(List <int [][]> list) {
+	public Map <int [][], int [][]> match(List <int [][]> listMatrix) {
 		Map <int [][], int [][]> mapping = new HashMap <> ();
-		boolean busy [] = new boolean [list.size()];
+		boolean busy [] = new boolean [listMatrix.size()];
 		int index = 0;
 		while(index < busy.length) {
 			if(busy[index]) {
@@ -56,30 +64,33 @@ public class Modelo {
 						random = random(busy.length -1);
 				}
 				busy[random] = true;
-				mapping.put(list.get(index), list.get(random));
-				mapping.put(list.get(random), list.get(index));
+				mapping.put(listMatrix.get(index), listMatrix.get(random));
 			}
 		}
 		return mapping;
 	}
 	
+	public boolean isMiddleCount(int matrix [][]) {
+		return countMatch(matrix) > 3;
+	}
+	
+	public boolean isPair(int matrix [][]) {
+		return matrix[0][0] % 2 == 0 && matrix[0][2] % 2 == 0 && matrix[2][0] % 2 == 0 && matrix[2][2] % 2 == 0;
+	}
+	
+	public boolean isCentral(int matrix [][]) {
+		return matrix[1][1] == 5;
+	}
+		
 	public int lack(boolean busy []) {
 		int count = 0;
 		for(int i = 0; i < busy.length; i++)
 			count = !busy[i]? count +1 : count;
 		return count;
 	}
-	
-	
-	
-	public void toList(List <int [][]> list) {
-		for(int i = 0; i < list.size(); i++)
-			System.out.println(toMatrix(list.get(i), 0, 0));
-	}
-	
+			
 	public int countMatch(int matrix [][]) {
-		int count = matrix[0][0] + matrix[1][1] + matrix[2][2] == 15? 1 : 0;
-		count = matrix[0][2] + matrix[1][1] + matrix[2][0] == 15? count +1 : count;
+		int count = 0;
 		for(int i = 0; i < matrix.length; i++) {
 			int row = 0;
 			int column = 0;
@@ -90,10 +101,10 @@ public class Modelo {
 			count = row == 15? count +1 : count;
 			count = column == 15? count +1 : count;
 		}
+		count = matrix[0][0] + matrix[1][1] + matrix[2][2] == 15? count +1 : count;
+		count = matrix[0][2] + matrix[1][1] + matrix[2][0] == 15? count +1 : count;
 		return count;
 	}
-	
-	
 	
 	private int [][] matrix(){
 		int matrix [][] = new int [3][3];
@@ -106,18 +117,6 @@ public class Modelo {
 					random = random(9);
 				matrix[i][j] = random;
 				nums[index ++] = random;
-			}
-		}
-		return matrix;
-	}
-	
-	public int [][] addAll(int matrix [][], int i, int j){
-		if(i < matrix.length) {
-			if(j < matrix.length) {
-				matrix[i][j] = random(9);
-				return addAll(matrix, i, j +1);
-			}else {
-				return addAll(matrix, i +1, j = 0);
 			}
 		}
 		return matrix;
@@ -153,8 +152,8 @@ public class Modelo {
 	
 	public static void main(String[] args) {
 		Modelo model = new Modelo();
-		System.out.println("\n---------------------\n");
-		System.out.println(model.emparejar(model.partitionQuantity(model.partitionMatrixIsPais(model.addMatrix()))).size() );
-		
+		List <int [][]> list = model.cleanMap(model.match(model.partition(model.addMatrix())));
+		list.forEach(x -> System.out.println(model.toMatrix(x, 0, 0)));
+		System.out.println(list.size());
 	}
 }

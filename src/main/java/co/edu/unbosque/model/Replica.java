@@ -39,5 +39,31 @@ public class Replica {
 		return nums;
 	}
 
+	public int [][] matrix(){
+		int matrix [][] = new int [3][3];
+		int nums [] = new int [9];
+		int index = 0;
+		for(int i = 0; i < matrix.length; i++) {
+			for(int j = 0; j < matrix.length; j++) {
+				int random = (9);
+				//while(!isFind(nums, 0,random)) 
+					//random = random(9);
+				matrix[i][j] = random;
+				nums[index ++] = random;
+			}
+		}
+		return matrix;
+	}
 	
+	public int [][] addAll(int matrix [][], int i, int j){
+		if(i < matrix.length) {
+			if(j < matrix.length) {
+				matrix[i][j] = 9;
+				return addAll(matrix, i, j +1);
+			}else {
+				return addAll(matrix, i +1, j = 0);
+			}
+		}
+		return matrix;
+	}
 }
