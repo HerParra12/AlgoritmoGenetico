@@ -1,5 +1,7 @@
 package co.edu.unbosque.model;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Replica {
@@ -53,6 +55,47 @@ public class Replica {
 			}
 		}
 		return matrix;
+	}
+	
+	public int [] matrixToArrayTwo(int matrix [][]) {
+		int nums [] = new int [9];
+		return matrixToArray(matrix, nums, 0, 0, 0);
+	}
+	
+	private  int [] matrixToArray(int matrix [][], int nums [], int index, int i, int j) {
+		if(i < matrix.length) {
+			if(j < matrix.length) {
+				nums[index++] = matrix[i][j];
+				matrixToArray(matrix, nums, index, i, j +1);
+			}else {
+				matrixToArray(matrix, nums, index, i +1, j = 0);
+			}
+		}
+		return nums;
+	}
+	
+	public List <int [][]> distinct(List <int [][]> listMatrix){
+		List <int [][]> listDistinct = new ArrayList <> ();
+		for(int i = 0; i < listMatrix.size(); i++) {
+			int nums [] = matrixToArray(listMatrix.get(i));
+			int index = 0;
+			for(int j = i +1; j < listMatrix.size(); j++) 
+				if(Arrays.equals(matrixToArray(listMatrix.get(j)), nums)) 
+					index ++;
+			if(index == 0)
+				listDistinct.add(listMatrix.get(i));
+		}
+		return listDistinct;
+	}
+
+	public String toMatrix(int matrix [][], int i, int j) {
+		if(i < matrix.length) {
+			if(j < matrix[i].length) 
+				return "[ " + matrix[i][j] + " ]" + toMatrix(matrix, i, j +1);
+			else 
+				return "\n" + toMatrix(matrix, i +1, j = 0);
+		}
+		return "";
 	}
 	
 	public int [][] addAll(int matrix [][], int i, int j){

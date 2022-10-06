@@ -1,51 +1,35 @@
 package co.edu.unbosque.model;
-import java.security.KeyStore.Entry;
 import java.util.*;
 
-@SuppressWarnings("unused")
+/**
+ * 
+ * @author Hernan Alvarado
+ * @version 2022
+ * @since 1.0
+ * 
+ */
 public class Modelo {
 	
-	private final int cantidad = 362880;
-	private final int maxLimit = 3;
+	private final int CANTIDAD = 362880;
+	private final int MAX_BITS = 35;
 	
 	public Modelo() {}
 	
 	
 	public List <int [][]> addMatrix() {
 		List <int[][]> list = new ArrayList<>();
-		for(int i = 0; i < cantidad; i++) 
+		for(int i = 0; i < CANTIDAD; i++) 
 			list.add(matrix());
 		return list;
 	}
 	
 	public List <int [][]> partition(List <int [][]> listMatrix){
 		return listMatrix.stream()
-					     .filter(this :: isPair)
 					     .filter(this :: isCentral)
 					     .filter(this :: isMiddleCount)
 					     .toList();
 	}
-	
-	public List <int [][]> cleanMap(Map <int [][], int [][]> map){
-		List <int [][]> list = new ArrayList <> ();
-		for(Map.Entry<int[][], int[][]> entry : map.entrySet()) {
-			 if(countMatch(entry.getKey()) > countMatch(entry.getValue()))
-				 list.add(entry.getKey());
-			 else
-				 list.add(entry.getValue());
-		}
-		return list;
-	}
-	
-	public List <int [][]> distinct(List <int [][]> listMatrix){
-		
-		return null;
-	}
-	
-	public void nose(List <int [][]> list) {
-		
-	}
-	
+			
 	public Map <int [][], int [][]> match(List <int [][]> listMatrix) {
 		Map <int [][], int [][]> mapping = new HashMap <> ();
 		boolean busy [] = new boolean [listMatrix.size()];
@@ -65,23 +49,93 @@ public class Modelo {
 				}
 				busy[random] = true;
 				mapping.put(listMatrix.get(index), listMatrix.get(random));
+				mapping.put(listMatrix.get(random), listMatrix.get(index));
 			}
 		}
 		return mapping;
 	}
 	
-	public boolean isMiddleCount(int matrix [][]) {
-		return countMatch(matrix) > 3;
+	public List <int [][]> bestMatch(Map <int [][], int [][]> mapping){
+		return mapping.entrySet()
+					  .stream()
+					  .map(this :: bestCase)
+					  .toList();
 	}
 	
-	public boolean isPair(int matrix [][]) {
-		return matrix[0][0] % 2 == 0 && matrix[0][2] % 2 == 0 && matrix[2][0] % 2 == 0 && matrix[2][2] % 2 == 0;
+	public List <String> crossing(List <int [][]> list) {
+		return match(list).entrySet()
+				   		  .stream()
+				   		  .map(this :: convertMatrixToString)
+				   		  .map(this :: crossingBit)
+				   		  .map(this :: joinBits)
+				   		  .toList();
+	}
+	
+	public List <int [][]> valueCrossing(List <String> listString) {
+		return listString.stream()
+				         .map(this :: splitBits)
+				         .map(this :: buildMatrix)
+				         .map(this :: valueInt)
+				         .toList();
+	}
+	
+	public List <int [][]> bestCandidates(List <int [][]> listCrossing){
+		return listCrossing.stream()
+						   .filter(this :: isMediumCount)
+						   .sorted((x,y) -> countMatch(y) - countMatch(x))
+						   .limit(10)
+						   .toList();
+	}
+	
+	public boolean isMiddleCount(int matrix [][]) {
+		return countMatch(matrix) >= 4;
 	}
 	
 	public boolean isCentral(int matrix [][]) {
 		return matrix[1][1] == 5;
 	}
+	
+	public int [][] bestCase(Map.Entry <int [][], int [][]> entry){
+		return countMatch(entry.getKey()) > countMatch(entry.getValue()) ? entry.getKey() : entry.getValue();
+	}
 		
+	private Map.Entry <String, String> convertMatrixToString(Map.Entry <int [][], int [][]> entry){
+		return Map.entry(binary(new StringBuilder(), entry.getKey(), 0, 0), binary(new StringBuilder(), entry.getValue(), 0, 0));
+	}
+	
+	public Map.Entry <Map.Entry <String, String>, Integer> crossingBit(Map.Entry <String, String> entry){
+		return Map.entry(entry, random(MAX_BITS));
+	}
+	
+	public String joinBits(Map.Entry<Map.Entry<String, String>, Integer> entry) {
+		return entry.getKey().getKey().substring(0, entry.getValue()).concat(entry.getKey().getValue().substring(entry.getValue()));
+	}
+	
+	public String [] splitBits(String string) {
+		return string.split("(?<=\\G.{4})");
+	}
+	
+	public String [][] buildMatrix(String [] splits){
+		String matrix [][] = new String [3][3];
+		int index = 0;
+		for(int i = 0; i < matrix.length; i++) 
+			for(int j = 0; j < matrix.length; j++) 
+				matrix[i][j] = splits[index ++];
+		return matrix;
+	}
+	
+	public int [][] valueInt(String [][] matrixString){
+		int matrix [][] = new int [3][3];
+		for(int i = 0; i < matrix.length; i++) 
+			for(int j = 0; j < matrix.length; j++) 
+				matrix[i][j] = Integer.parseInt(matrixString[i][j], 2);
+		return matrix;
+	}
+	
+	public boolean isMediumCount(int matrix [][]) {
+		return countMatch(matrix) >= 5;
+	}
+	
 	public int lack(boolean busy []) {
 		int count = 0;
 		for(int i = 0; i < busy.length; i++)
@@ -113,7 +167,7 @@ public class Modelo {
 		for(int i = 0; i < matrix.length; i++) {
 			for(int j = 0; j < matrix.length; j++) {
 				int random = random(9);
-				while(!isFind(nums, 0,random)) 
+				while(!isFind(nums, 0, random))
 					random = random(9);
 				matrix[i][j] = random;
 				nums[index ++] = random;
@@ -132,15 +186,19 @@ public class Modelo {
 		return true;
 	}
 	
-	private int random(int max) {
-		return (int) Math.round(Math.random()*max);
+	private String binary(StringBuilder builder, int nums [][], int i, int j) {
+		if(i < nums.length) {
+			if(j < nums.length) {
+				builder.append(bits(nums[i][j]));
+				return binary(builder, nums, i, j +1);
+			}else {
+				return binary(builder, nums, i +1, j = 0);
+			}
+		}
+		return builder.toString();
 	}
-	
-	public double randomDouble() {
-		return Math.random();
-	}
-	
-	public String toMatrix(int matrix [][], int i, int j) {
+		
+	private String toMatrix(int matrix [][], int i, int j) {
 		if(i < matrix.length) {
 			if(j < matrix[i].length) 
 				return "[ " + matrix[i][j] + " ]" + toMatrix(matrix, i, j +1);
@@ -149,11 +207,27 @@ public class Modelo {
 		}
 		return "";
 	}
+
+	
+	private String bits(int number) {
+		StringBuilder builder = new StringBuilder(Integer.toBinaryString(number));
+		while(builder.length() != 4)
+			builder.insert(0, "0");
+		return builder.toString();
+	}
+	
+	private int random(int max) {
+		return (int) Math.round(Math.random()*max);
+	}
 	
 	public static void main(String[] args) {
 		Modelo model = new Modelo();
-		List <int [][]> list = model.cleanMap(model.match(model.partition(model.addMatrix())));
-		list.forEach(x -> System.out.println(model.toMatrix(x, 0, 0)));
-		System.out.println(list.size());
-	}
+		List <int [][]> list = model.partition(model.addMatrix());
+		Map <int [][], int [][]> match = model.match(list);
+		List <int [][]> bestMatch = model.bestMatch(match);
+		List <String> crossing = model.crossing(bestMatch);
+		List <int [][]> value = model.valueCrossing(crossing);
+		List <int [][]> candidates = model.bestCandidates(value);
+		candidates.forEach(x -> System.out.println(model.toMatrix(x, 0, 0)));
+	}	
 }
