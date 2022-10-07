@@ -12,6 +12,7 @@ public class Modelo {
 	
 	private final int CANTIDAD = 362880;
 	private final int MAX_BITS = 35;
+	private final int MAX_BEST = 3;
 	
 	public Modelo() {}
 	
@@ -82,8 +83,8 @@ public class Modelo {
 	public List <int [][]> bestCandidates(List <int [][]> listCrossing){
 		return listCrossing.stream()
 						   .filter(this :: isMediumCount)
-						   .sorted((x,y) -> countMatch(y) - countMatch(x))
-						   .limit(10)
+						   .sorted(Comparator.comparing(this :: countMatch, Comparator.reverseOrder()))
+						   .limit(MAX_BEST)
 						   .toList();
 	}
 	
@@ -133,7 +134,7 @@ public class Modelo {
 	}
 	
 	public boolean isMediumCount(int matrix [][]) {
-		return countMatch(matrix) >= 5;
+		return countMatch(matrix) >= 6;
 	}
 	
 	public int lack(boolean busy []) {
