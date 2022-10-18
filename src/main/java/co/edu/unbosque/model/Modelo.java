@@ -1,5 +1,7 @@
 package co.edu.unbosque.model;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * 
@@ -18,10 +20,9 @@ public class Modelo {
 	
 	
 	public List <int [][]> addMatrix() {
-		List <int[][]> list = new ArrayList<>();
-		for(int i = 0; i < CANTIDAD; i++) 
-			list.add(matrix());
-		return list;
+		return Stream.generate(this :: matrix)
+				     .limit(CANTIDAD)
+				     .toList();
 	}
 	
 	public List <int [][]> partition(List <int [][]> listMatrix){
@@ -43,8 +44,8 @@ public class Modelo {
 				if(lack(busy) == 1) {
 					random = index;
 				}else {
-					random = random(busy.length -1);
 					busy[index] = true;
+					random = random(busy.length -1);
 					while(busy[random]) 
 						random = random(busy.length -1);
 				}
@@ -80,12 +81,13 @@ public class Modelo {
 				         .toList();
 	}
 	
-	public List <int [][]> bestCandidates(List <int [][]> listCrossing){
+	public String bestCandidates(List <int [][]> listCrossing){
 		return listCrossing.stream()
 						   .filter(this :: isMediumCount)
 						   .sorted(Comparator.comparing(this :: countMatch, Comparator.reverseOrder()))
 						   .limit(MAX_BEST)
-						   .toList();
+						   .map(this :: result)
+						   .collect(Collectors.joining("\n\n"));
 	}
 	
 	public boolean isMiddleCount(int matrix [][]) {
@@ -114,6 +116,10 @@ public class Modelo {
 	
 	public String [] splitBits(String string) {
 		return string.split("(?<=\\G.{4})");
+	}
+	
+	public String result(int matrix [][]) {
+		return toMatrix(matrix, 0, 0) + "count = " + countMatch(matrix);
 	}
 	
 	public String [][] buildMatrix(String [] splits){
@@ -190,8 +196,7 @@ public class Modelo {
 	private String binary(StringBuilder builder, int nums [][], int i, int j) {
 		if(i < nums.length) {
 			if(j < nums.length) {
-				builder.append(bits(nums[i][j]));
-				return binary(builder, nums, i, j +1);
+				return bits(nums[i][j]) + binary(builder, nums, i, j +1);
 			}else {
 				return binary(builder, nums, i +1, j = 0);
 			}
@@ -209,7 +214,6 @@ public class Modelo {
 		return "";
 	}
 
-	
 	private String bits(int number) {
 		StringBuilder builder = new StringBuilder(Integer.toBinaryString(number));
 		while(builder.length() != 4)
@@ -228,7 +232,7 @@ public class Modelo {
 		List <int [][]> bestMatch = model.bestMatch(match);
 		List <String> crossing = model.crossing(bestMatch);
 		List <int [][]> value = model.valueCrossing(crossing);
-		List <int [][]> candidates = model.bestCandidates(value);
-		candidates.forEach(x -> System.out.println(model.toMatrix(x, 0, 0)));
+		String candidates = model.bestCandidates(value);
+		System.out.println(candidates);
 	}	
 }
